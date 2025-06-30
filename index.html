@@ -8,41 +8,27 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Using Font Awesome for professional icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
     <!-- 
-        Chosen Palette: Warm Neutrals & Slate
+        Chosen Palette: Warm Neutrals & Slate (Enhanced)
         - bg-neutral-50 (main background)
         - bg-white (cards, modals)
-        - text-slate-800 (primary text)
-        - text-slate-500 (secondary text)
-        - bg-slate-800 (primary buttons, header)
+        - text-slate-900 (primary text, darker for more contrast)
+        - text-slate-600 (secondary text)
+        - bg-slate-900 (primary buttons, header)
         - text-white (text on primary buttons)
         - border-slate-200 (borders)
         - accent: bg-sky-500, text-sky-500 (for highlights, links)
+        - Enhancement: Glassmorphism header on scroll, subtle gradients.
     -->
-    <!-- 
-        Application Structure Plan: A single-page, vertical scroll application with a fixed navigation header. The structure is designed for a narrative flow, guiding the user from a high-level summary to detailed proof of work.
-        1.  Hero/Header: A fixed header with navigation links (Summary, Skills, Experience, Projects) for easy access and a main section with Hardik's name and title.
-        2.  Summary: A concise professional summary.
-        3.  Skills Showcase: An interactive grid of skills, categorized for clarity. This allows recruiters to quickly assess technical capabilities.
-        4.  Experience Timeline: A visually clear, chronological timeline for work experience. This is more engaging than a simple list.
-        5.  Projects Gallery: A grid of project cards. Clicking a card opens a modal with detailed project information and an interactive chart, preventing context switching and keeping the user on the page. This is the core interactive element, designed to showcase practical skills.
-        This structure was chosen to be scannable, engaging, and mobile-friendly, providing a seamless user experience that tells a compelling professional story.
-    -->
-    <!-- 
-        Visualization & Content Choices:
-        -   Skills Section: Goal: Inform/Organize. Method: Categorized card layout using HTML/Tailwind. Interaction: Hover effects for engagement. Justification: Easy for recruiters to scan and find relevant skills quickly.
-        -   Experience Section: Goal: Inform/Change. Method: Vertical timeline using HTML/Tailwind. Interaction: None, focus on clarity. Justification: A timeline is a standard, easily understood representation of career progression.
-        -   Project 1 (DeepDrive Analytics): Goal: Compare/Inform. Viz: Bar Chart (Chart.js) comparing MAE vs. a baseline or showing feature importance. Interaction: Modal pop-up on card click. Justification: A bar chart effectively visualizes model performance against a key metric.
-        -   Project 2 (House Price Prediction): Goal: Compare/Relationships. Viz: Bar Chart (Chart.js) comparing R-squared values of different regression models (Linear, Lasso, Ridge, Polynomial). Interaction: Modal pop-up. Justification: Directly visualizes the project's key finding—that Polynomial Regression was the best model.
-        -   Project 3 (Airbnb Analysis): Goal: Relationships/Inform. Viz: Donut Chart (Chart.js) showing distribution of listings by neighborhood or room type. Interaction: Modal pop-up. Justification: A donut chart is great for showing parts of a whole, fitting for EDA findings.
-        The modals with charts provide a "drill-down" capability without leaving the main page, enhancing user engagement and information delivery.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc; /* bg-neutral-50 */
+            color: #0f172a; /* text-slate-900 */
         }
         .chart-container {
             position: relative;
@@ -53,98 +39,125 @@
             height: 300px;
             max-height: 40vh;
         }
-        .modal-enter-active, .modal-leave-active {
-            transition: opacity 0.3s ease;
-        }
-        .modal-enter-from, .modal-leave-to {
+        /* Modal Transitions */
+        .modal-enter-active, .modal-leave-active { transition: opacity 0.3s ease; }
+        .modal-enter-from, .modal-leave-to { opacity: 0; }
+        .modal-content-enter-active, .modal-content-leave-active { transition: all 0.3s ease; }
+        .modal-content-enter-from, .modal-content-leave-to { opacity: 0; transform: translateY(-20px); }
+
+        /* Scroll Animation: Elements start invisible */
+        .fade-in-section {
             opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
-        .modal-content-enter-active, .modal-content-leave-active {
-            transition: all 0.3s ease;
+        /* Elements become visible when this class is added by JS */
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
         }
-        .modal-content-enter-from, .modal-content-leave-to {
-            opacity: 0;
-            transform: translateY(-20px);
+        
+        /* Professional Timeline styling */
+        .timeline-item:nth-child(even) .timeline-content {
+             margin-left: 0;
+             margin-right: auto;
+        }
+         .timeline-item:nth-child(even) .timeline-content {
+            text-align: left;
+        }
+        @media (min-width: 768px) {
+            .timeline-item:nth-child(even) .timeline-content {
+                margin-left: auto;
+                margin-right: calc(50% + 1.5rem); /* 50% + half of gap */
+                text-align: right;
+            }
+             .timeline-item:nth-child(odd) .timeline-content {
+                margin-left: calc(50% + 1.5rem); /* 50% + half of gap */
+                margin-right: auto;
+            }
         }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="text-slate-900">
 
-    <header id="header" class="bg-slate-800 text-white shadow-md sticky top-0 z-50 transition-all duration-300">
-        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <div class="text-xl font-bold">
-                <a href="#home" class="hover:text-sky-400">Hardik Sharma</a>
+    <!-- Header with Glassmorphism Effect on Scroll -->
+    <header id="header" class="bg-slate-900 text-white shadow-md sticky top-0 z-50 transition-all duration-300">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-xl font-bold tracking-wider">
+                <a href="#home" class="hover:text-sky-400 transition-colors">HARDIK SHARMA</a>
             </div>
-            <div class="hidden md:flex space-x-8">
-                <a href="#summary" class="hover:text-sky-400">Summary</a>
-                <a href="#skills" class="hover:text-sky-400">Skills</a>
-                <a href="#experience" class="hover:text-sky-400">Experience</a>
-                <a href="#projects" class="hover:text-sky-400">Projects</a>
+            <div class="hidden md:flex space-x-8 font-medium">
+                <a href="#summary" class="hover:text-sky-400 transition-colors">Summary</a>
+                <a href="#skills" class="hover:text-sky-400 transition-colors">Skills</a>
+                <a href="#experience" class="hover:text-sky-400 transition-colors">Experience</a>
+                <a href="#projects" class="hover:text-sky-400 transition-colors">Projects</a>
             </div>
             <button id="mobile-menu-button" class="md:hidden focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
             </button>
         </nav>
         <div id="mobile-menu" class="hidden md:hidden px-6 pt-2 pb-4 space-y-2">
-            <a href="#summary" class="block hover:text-sky-400">Summary</a>
-            <a href="#skills" class="block hover:text-sky-400">Skills</a>
-            <a href="#experience" class="block hover:text-sky-400">Experience</a>
-            <a href="#projects" class="block hover:text-sky-400">Projects</a>
+            <a href="#summary" class="block hover:text-sky-400 transition-colors">Summary</a>
+            <a href="#skills" class="block hover:text-sky-400 transition-colors">Skills</a>
+            <a href="#experience" class="block hover:text-sky-400 transition-colors">Experience</a>
+            <a href="#projects" class="block hover:text-sky-400 transition-colors">Projects</a>
         </div>
     </header>
 
     <main class="container mx-auto px-6 py-8 md:py-16">
 
-        <section id="home" class="text-center min-h-[60vh] flex flex-col justify-center items-center">
-            <h1 class="text-4xl md:text-6xl font-bold mb-2">Hardik Sharma</h1>
-            <p class="text-xl md:text-2xl text-slate-600 mb-6">Data Scientist | Analyst | AI & Machine Learning Enthusiast</p>
-            <div class="flex space-x-4 text-slate-600">
-                <a href="https://linkedin.com/in/hardiksd7" target="_blank" class="hover:text-sky-500">LinkedIn</a>
-                <span>&bull;</span>
-                <a href="https://github.com/hardiksd7" target="_blank" class="hover:text-sky-500">GitHub</a>
-                 <span>&bull;</span>
-                <a href="mailto:hardiksd7@gmail.com" class="hover:text-sky-500">Email</a>
+        <!-- Enhanced Hero Section with Gradient & CTA -->
+        <section id="home" class="text-center min-h-[70vh] flex flex-col justify-center items-center bg-gradient-to-br from-slate-50 to-neutral-200 -mt-16 -mx-6 px-6 rounded-b-3xl">
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-4 text-slate-900">Hardik Sharma</h1>
+            <p class="text-xl md:text-2xl text-slate-600 mb-8">Data Scientist | Analyst | AI & Machine Learning Enthusiast</p>
+            <div class="flex items-center space-x-6 mb-10 text-2xl text-slate-600">
+                <a href="https://linkedin.com/in/hardiksd7" target="_blank" class="hover:text-sky-500 transition-transform hover:scale-110"><i class="fa-brands fa-linkedin"></i></a>
+                <a href="https://github.com/hardiksd7" target="_blank" class="hover:text-sky-500 transition-transform hover:scale-110"><i class="fa-brands fa-github"></i></a>
+                <a href="mailto:hardiksd7@gmail.com" class="hover:text-sky-500 transition-transform hover:scale-110"><i class="fa-solid fa-envelope"></i></a>
             </div>
+            <a href="#projects" class="bg-slate-800 text-white font-semibold px-8 py-3 rounded-lg hover:bg-sky-600 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                View My Projects <i class="fa-solid fa-arrow-right ml-2"></i>
+            </a>
         </section>
 
-        <section id="summary" class="py-16 md:py-24">
-            <h2 class="text-3xl font-bold text-center mb-12">Summary</h2>
-            <div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-                <p class="text-lg text-slate-600 leading-relaxed">
+        <section id="summary" class="py-20 md:py-28 fade-in-section">
+            <h2 class="text-4xl font-bold text-center mb-12">Professional Summary</h2>
+            <div class="max-w-3xl mx-auto bg-white p-10 rounded-xl shadow-xl">
+                <p class="text-lg text-slate-600 leading-relaxed text-center">
                     Highly analytical and results-driven Data Scientist specializing in transforming complex datasets into actionable insights and robust predictive models. Proficient in Python, SQL, TensorFlow, and Keras, with a proven track record in end-to-end data analysis, advanced machine learning, and deep learning solutions. Eager to leverage strong technical expertise and problem-solving skills to drive data-driven innovation and deliver measurable impact.
                 </p>
             </div>
         </section>
 
-        <section id="skills" class="py-16 md:py-24 bg-white rounded-lg shadow-lg">
-            <h2 class="text-3xl font-bold text-center mb-12">Technical Expertise</h2>
-            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="skill-category p-6 rounded-lg border border-slate-200">
-                    <h3 class="text-xl font-semibold mb-4">ML & Deep Learning</h3>
+        <section id="skills" class="py-20 md:py-28 bg-white rounded-xl shadow-xl fade-in-section">
+            <h2 class="text-4xl font-bold text-center mb-16">Technical Expertise</h2>
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-8">
+                <div class="skill-category">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center gap-3"><i class="fa-solid fa-brain text-sky-500 w-6 text-center"></i>ML & Deep Learning</h3>
                     <div class="flex flex-wrap gap-2">
                         <span class="skill-tag">TensorFlow</span><span class="skill-tag">Keras</span><span class="skill-tag">PyTorch</span><span class="skill-tag">Scikit-learn</span><span class="skill-tag">XGBoost</span><span class="skill-tag">Regression</span><span class="skill-tag">Classification</span><span class="skill-tag">Clustering</span><span class="skill-tag">CNNs</span><span class="skill-tag">RNNs</span>
                     </div>
                 </div>
-                <div class="skill-category p-6 rounded-lg border border-slate-200">
-                    <h3 class="text-xl font-semibold mb-4">Programming & Databases</h3>
+                <div class="skill-category">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center gap-3"><i class="fa-solid fa-code text-sky-500 w-6 text-center"></i>Programming & Databases</h3>
                     <div class="flex flex-wrap gap-2">
                         <span class="skill-tag">Python</span><span class="skill-tag">Pandas</span><span class="skill-tag">NumPy</span><span class="skill-tag">SQL</span><span class="skill-tag">MySQL</span>
                     </div>
                 </div>
-                <div class="skill-category p-6 rounded-lg border border-slate-200">
-                    <h3 class="text-xl font-semibold mb-4">Data Analysis & Visualization</h3>
+                <div class="skill-category">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center gap-3"><i class="fa-solid fa-chart-line text-sky-500 w-6 text-center"></i>Data Analysis & Viz</h3>
                      <div class="flex flex-wrap gap-2">
                         <span class="skill-tag">ETL</span><span class="skill-tag">Power BI</span><span class="skill-tag">Tableau</span><span class="skill-tag">Matplotlib</span><span class="skill-tag">Seaborn</span><span class="skill-tag">Plotly</span>
                     </div>
                 </div>
-                 <div class="skill-category p-6 rounded-lg border border-slate-200">
-                    <h3 class="text-xl font-semibold mb-4">Big Data & Cloud (Conceptual)</h3>
+                 <div class="skill-category">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center gap-3"><i class="fa-solid fa-cloud text-sky-500 w-6 text-center"></i>Big Data & Cloud</h3>
                      <div class="flex flex-wrap gap-2">
                         <span class="skill-tag">Spark</span><span class="skill-tag">Hadoop</span><span class="skill-tag">AWS</span><span class="skill-tag">GCP</span>
                     </div>
                 </div>
-                 <div class="skill-category p-6 rounded-lg border border-slate-200">
-                    <h3 class="text-xl font-semibold mb-4">Tools & Methodologies</h3>
+                 <div class="skill-category">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center gap-3"><i class="fa-solid fa-cogs text-sky-500 w-6 text-center"></i>Tools & Methodologies</h3>
                      <div class="flex flex-wrap gap-2">
                         <span class="skill-tag">Git</span><span class="skill-tag">GitHub</span><span class="skill-tag">Statistics</span><span class="skill-tag">A/B Testing</span><span class="skill-tag">Hypothesis Testing</span>
                     </div>
@@ -152,17 +165,19 @@
             </div>
         </section>
 
-        <section id="experience" class="py-16 md:py-24">
-            <h2 class="text-3xl font-bold text-center mb-16">Work Experience</h2>
-            <div class="relative max-w-2xl mx-auto">
-                <div class="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-slate-200"></div>
-                <div class="relative mb-8">
-                    <div class="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-sky-500 rounded-full mt-1.5"></div>
-                    <div class="ml-auto md:ml-0 md:w-5/12 p-6 bg-white rounded-lg shadow-lg">
+        <!-- Enhanced Timeline -->
+        <section id="experience" class="py-20 md:py-28 fade-in-section">
+            <h2 class="text-4xl font-bold text-center mb-20">Work Experience</h2>
+            <div class="relative max-w-4xl mx-auto px-4">
+                <div class="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-slate-200 hidden md:block"></div>
+                <!-- Timeline Item 1 -->
+                <div class="timeline-item relative mb-12">
+                    <div class="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-white border-4 border-sky-500 rounded-full mt-1.5 hidden md:block"></div>
+                    <div class="timeline-content w-full md:w-5/12 p-6 bg-white rounded-xl shadow-xl border border-slate-200">
                         <h3 class="text-xl font-bold">Data Analyst</h3>
-                        <p class="text-slate-600 mb-2">SPNX | Noida, UP</p>
-                        <p class="text-sm text-slate-500 mb-4">July 2024 – February 2025</p>
-                        <ul class="list-disc list-inside text-slate-600 space-y-2">
+                        <p class="text-slate-600 mb-2 font-medium">SPNX | Noida, UP</p>
+                        <p class="text-sm text-sky-600 bg-sky-100 rounded-full inline-block px-3 py-1 mb-4">July 2024 – Feb 2025</p>
+                        <ul class="list-disc list-inside text-slate-600 space-y-2 text-left">
                             <li>Streamlined data workflows using Python (Pandas, NumPy).</li>
                             <li>Automated data sorting, boosting efficiency by 50%.</li>
                             <li>Designed 10+ reports and dashboards in Power BI.</li>
@@ -170,80 +185,135 @@
                         </ul>
                     </div>
                 </div>
+                 <!-- Add more timeline items here, they will alternate sides automatically -->
             </div>
         </section>
 
-        <section id="projects" class="py-16 md:py-24 bg-white rounded-lg shadow-lg">
-            <h2 class="text-3xl font-bold text-center mb-12">Projects</h2>
-            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section id="projects" class="py-20 md:py-28 bg-white rounded-xl shadow-xl fade-in-section">
+            <h2 class="text-4xl font-bold text-center mb-16">Projects</h2>
+            <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-8">
+                <!-- Project Card 1 -->
                 <div class="project-card" data-project="deepdrive">
                     <h3 class="text-xl font-semibold mb-2">DeepDrive Analytics</h3>
-                    <p class="text-slate-600">A deep learning solution to accurately forecast car prices using TensorFlow and Keras.</p>
+                    <p class="text-slate-600 mb-4">A deep learning solution to accurately forecast car prices using TensorFlow and Keras.</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="project-tech-tag">TensorFlow</span><span class="project-tech-tag">Keras</span><span class="project-tech-tag">Python</span>
+                    </div>
+                    <span class="details-link">View Details <i class="fa-solid fa-arrow-right"></i></span>
                 </div>
+                <!-- Project Card 2 -->
                 <div class="project-card" data-project="houseprice">
                     <h3 class="text-xl font-semibold mb-2">House Price Prediction</h3>
-                    <p class="text-slate-600">Compared multiple ML models to find the best predictor for house prices, achieving an R² of 0.72.</p>
+                    <p class="text-slate-600 mb-4">Compared multiple ML models to find the best predictor for house prices, achieving an R² of 0.72.</p>
+                     <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="project-tech-tag">Scikit-learn</span><span class="project-tech-tag">Pandas</span><span class="project-tech-tag">Regression</span>
+                    </div>
+                    <span class="details-link">View Details <i class="fa-solid fa-arrow-right"></i></span>
                 </div>
+                <!-- Project Card 3 -->
                 <div class="project-card" data-project="airbnb">
                     <h3 class="text-xl font-semibold mb-2">Airbnb Data Analysis</h3>
-                    <p class="text-slate-600">Conducted comprehensive EDA on Airbnb data to uncover listing trends and guest behavior patterns.</p>
+                    <p class="text-slate-600 mb-4">Conducted comprehensive EDA on Airbnb data to uncover listing trends and guest behavior patterns.</p>
+                     <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="project-tech-tag">Pandas</span><span class="project-tech-tag">Matplotlib</span><span class="project-tech-tag">EDA</span>
+                    </div>
+                    <span class="details-link">View Details <i class="fa-solid fa-arrow-right"></i></span>
                 </div>
             </div>
         </section>
 
     </main>
     
-    <div id="project-modal" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4 hidden">
+    <!-- Professional Modal -->
+    <div id="project-modal" class="fixed inset-0 bg-black bg-opacity-70 z-[100] flex justify-center items-center p-4 hidden">
         <div id="modal-content" class="bg-white rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-8 relative">
-            <button id="close-modal-button" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800">&times;</button>
-            <h3 id="modal-title" class="text-2xl font-bold mb-4"></h3>
-            <p id="modal-description" class="text-slate-600 mb-6"></p>
+            <button id="close-modal-button" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-3xl font-light">×</button>
+            <h3 id="modal-title" class="text-3xl font-bold mb-4 text-slate-900"></h3>
             <div id="modal-tech-stack" class="flex flex-wrap gap-2 mb-6"></div>
-            <div class="chart-container">
+            <p id="modal-description" class="text-slate-600 mb-8 leading-relaxed"></p>
+            <div class="chart-container bg-slate-50 p-4 rounded-lg">
                 <canvas id="project-chart"></canvas>
             </div>
         </div>
     </div>
+    
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-8">
+        <div class="container mx-auto text-center">
+            <div class="flex justify-center space-x-6 mb-4 text-xl">
+                <a href="https://linkedin.com/in/hardiksd7" target="_blank" class="hover:text-sky-400 transition-colors"><i class="fa-brands fa-linkedin"></i></a>
+                <a href="https://github.com/hardiksd7" target="_blank" class="hover:text-sky-400 transition-colors"><i class="fa-brands fa-github"></i></a>
+                <a href="mailto:hardiksd7@gmail.com" class="hover:text-sky-400 transition-colors"><i class="fa-solid fa-envelope"></i></a>
+            </div>
+            <p>© 2024 Hardik Sharma. All Rights Reserved.</p>
+        </div>
+    </footer>
 
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
+            // --- Mobile Menu ---
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
             mobileMenuButton.addEventListener('click', () => {
                 mobileMenu.classList.toggle('hidden');
             });
-            
             document.querySelectorAll('#mobile-menu a').forEach(link => {
-                link.addEventListener('click', () => {
-                    mobileMenu.classList.add('hidden');
-                });
+                link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
             });
 
+            // --- Glassmorphism Header on Scroll ---
             const header = document.getElementById('header');
+            const navLinks = header.querySelectorAll('nav a');
             window.addEventListener('scroll', () => {
                 if (window.scrollY > 50) {
-                    header.classList.add('py-2');
-                    header.classList.remove('py-3');
+                    header.classList.add('bg-white/80', 'backdrop-blur-sm', 'shadow-xl');
+                    header.classList.remove('bg-slate-900');
+                    header.querySelectorAll('a, button').forEach(el => el.classList.add('text-slate-800'));
+                    header.querySelectorAll('a, button').forEach(el => el.classList.remove('text-white'));
                 } else {
-                    header.classList.remove('py-2');
-                    header.classList.add('py-3');
+                    header.classList.remove('bg-white/80', 'backdrop-blur-sm', 'shadow-xl');
+                    header.classList.add('bg-slate-900');
+                    header.querySelectorAll('a, button').forEach(el => el.classList.remove('text-slate-800'));
+                    header.querySelectorAll('a, button').forEach(el => el.classList.add('text-white'));
                 }
             });
             
-            const skillTags = document.querySelectorAll('.skill-tag');
-            skillTags.forEach(tag => {
+            // --- Fade-in on Scroll Animation ---
+            const sectionsToFade = document.querySelectorAll('.fade-in-section');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target); // Animate only once
+                    }
+                });
+            }, { threshold: 0.1 });
+            sectionsToFade.forEach(section => observer.observe(section));
+
+            // --- Dynamic Styling for Reusable Components ---
+            document.querySelectorAll('.skill-tag').forEach(tag => {
                 tag.classList.add('bg-slate-100', 'text-slate-700', 'px-3', 'py-1', 'rounded-full', 'text-sm', 'font-medium', 'transition-colors', 'hover:bg-sky-100', 'hover:text-sky-700');
             });
-
-            const projectCards = document.querySelectorAll('.project-card');
-            projectCards.forEach(card => {
-                card.classList.add('bg-slate-50', 'p-6', 'rounded-lg', 'border', 'border-slate-200', 'cursor-pointer', 'transition-all', 'hover:shadow-xl', 'hover:border-sky-300', 'hover:-translate-y-1');
+            
+            document.querySelectorAll('.project-card').forEach(card => {
+                card.classList.add('bg-white', 'p-6', 'rounded-xl', 'border', 'border-slate-200', 'cursor-pointer', 'transition-all', 'duration-300', 'hover:shadow-2xl', 'hover:border-sky-400', 'hover:-translate-y-2', 'flex', 'flex-col');
+                card.querySelector('p').classList.add('flex-grow');
             });
 
+            document.querySelectorAll('.project-tech-tag').forEach(tag => {
+                tag.classList.add('bg-slate-200', 'text-slate-800', 'text-xs', 'font-semibold', 'px-2.5', 'py-0.5', 'rounded-full');
+            });
+
+            document.querySelectorAll('.details-link').forEach(link => {
+                link.classList.add('text-sky-600', 'font-semibold', 'mt-auto', 'pt-2', 'group');
+                link.querySelector('i').classList.add('transform', 'transition-transform', 'duration-300', 'inline-block', 'group-hover:translate-x-1');
+            });
+
+
+            // --- Modal Logic ---
             const modal = document.getElementById('project-modal');
-            const modalContent = document.getElementById('modal-content');
             const closeModalButton = document.getElementById('close-modal-button');
             const modalTitle = document.getElementById('modal-title');
             const modalDescription = document.getElementById('modal-description');
@@ -255,7 +325,7 @@
                 deepdrive: {
                     title: "DeepDrive Analytics: Next-Gen Car Price Forecaster",
                     description: "Developed an advanced deep learning solution using TensorFlow and Keras to accurately predict car prices. This project involved engineering robust data preprocessing pipelines, including one-hot encoding, to transform raw car datasets for optimal neural network training. An custom Sequential neural network model was architected and trained, demonstrating proficiency in building high-performance predictive AI systems.",
-                    tech: ["Deep Learning", "Python", "TensorFlow", "Keras", "Pandas"],
+                    tech: ["Deep Learning", "Python", "TensorFlow", "Keras", "Pandas", "Neural Networks"],
                     chart: {
                         type: 'bar',
                         data: {
@@ -263,21 +333,21 @@
                             datasets: [{
                                 label: 'Model Performance (Mean Absolute Error)',
                                 data: [15000, 4500],
-                                backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
-                                borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
-                                borderWidth: 1
+                                backgroundColor: ['rgba(252, 165, 165, 0.5)', 'rgba(147, 197, 253, 0.5)'],
+                                borderColor: ['rgb(252, 165, 165)', 'rgb(147, 197, 253)'],
+                                borderWidth: 2
                             }]
                         },
                         options: {
                             scales: { y: { beginAtZero: true, ticks: { callback: value => '$' + value } } },
-                            plugins: { legend: { display: false } }
+                            plugins: { legend: { display: false }, title: { display: true, text: 'Model Performance (Lower is Better)', font: { size: 14 } } }
                         }
                     }
                 },
                 houseprice: {
                     title: "House Price Prediction Using Machine Learning",
-                    description: "Constructed and comparatively evaluated multiple machine learning regression models (Linear, Lasso, Ridge, Polynomial Regression) for precise house price estimation. This project included advanced feature engineering and comprehensive data preprocessing (Box-Cox transformation) to optimize model inputs and achieved strong predictive performance.",
-                    tech: ["Machine Learning", "Python", "Scikit-learn", "Pandas", "Matplotlib"],
+                    description: "Constructed and comparatively evaluated multiple machine learning regression models (Linear, Lasso, Ridge, Polynomial Regression) for precise house price estimation. This project included advanced feature engineering and comprehensive data preprocessing (Box-Cox transformation) to optimize model inputs and achieved a strong R-squared of 0.72 with the final model.",
+                    tech: ["Machine Learning", "Python", "Scikit-learn", "Pandas", "Matplotlib", "Regression"],
                     chart: {
                         type: 'bar',
                         data: {
@@ -286,38 +356,41 @@
                                 label: 'R-squared Value',
                                 data: [0.65, 0.64, 0.65, 0.72],
                                 backgroundColor: ['#fed7aa', '#fca5a5', '#93c5fd', '#86efac'],
-                                borderWidth: 1
+                                borderColor: ['#fb923c', '#ef4444', '#3b82f6', '#22c55e'],
+                                borderWidth: 1.5
                             }]
                         },
                         options: {
                              scales: { y: { beginAtZero: true, max: 1.0 } },
-                             plugins: { legend: { display: false }, title: { display: true, text: 'Model R-squared Comparison' } }
+                             plugins: { legend: { display: false }, title: { display: true, text: 'Model R-squared Comparison (Higher is Better)', font: { size: 14 } } }
                         }
                     }
                 },
                 airbnb: {
                     title: "Airbnb Data Analysis and Data Visualization",
-                    description: "Conducted extensive Exploratory Data Analysis (EDA) on a large Airbnb dataset to uncover key trends, patterns, and insights related to listings, pricing, and guest behavior. Performed thorough data cleaning and preprocessing using Pandas and created compelling visualizations with Matplotlib and Seaborn to communicate findings.",
-                    tech: ["Data Analysis", "Python", "Pandas", "Matplotlib", "Seaborn"],
+                    description: "Conducted extensive Exploratory Data Analysis (EDA) on a large Airbnb dataset to uncover key trends, patterns, and insights related to listings, pricing, and guest behavior. Performed thorough data cleaning and preprocessing using Pandas and created compelling visualizations with Matplotlib and Seaborn to communicate findings effectively.",
+                    tech: ["Data Analysis", "Python", "Pandas", "Matplotlib", "Seaborn", "EDA"],
                     chart: {
                         type: 'doughnut',
                         data: {
                             labels: ['Private Room', 'Entire home/apt', 'Shared room', 'Hotel room'],
                             datasets: [{
-                                label: 'Listing Distribution',
+                                label: 'Listing Distribution %',
                                 data: [45.5, 52.0, 2.0, 0.5],
                                 backgroundColor: ['#93c5fd', '#86efac', '#fca5a5', '#fed7aa'],
-                                hoverOffset: 4
+                                hoverOffset: 8,
+                                borderColor: '#fff',
+                                borderWidth: 2
                             }]
                         },
                          options: {
-                             plugins: { legend: { position: 'top' }, title: { display: true, text: 'Distribution of Airbnb Listing Types' } }
+                             plugins: { legend: { position: 'top' }, title: { display: true, text: 'Distribution of Airbnb Listing Types', font: { size: 14 } } }
                         }
                     }
                 }
             };
             
-            projectCards.forEach(card => {
+            document.querySelectorAll('.project-card').forEach(card => {
                 card.addEventListener('click', () => {
                     const projectKey = card.dataset.project;
                     const project = projectsData[projectKey];
@@ -329,13 +402,11 @@
                     project.tech.forEach(techName => {
                         const techEl = document.createElement('span');
                         techEl.textContent = techName;
-                        techEl.classList.add('bg-slate-100', 'text-slate-700', 'px-3', 'py-1', 'rounded-full', 'text-sm', 'font-medium');
+                        techEl.classList.add('bg-sky-100', 'text-sky-800', 'px-3', 'py-1', 'rounded-full', 'text-sm', 'font-semibold');
                         modalTechStack.appendChild(techEl);
                     });
 
-                    if (currentChart) {
-                        currentChart.destroy();
-                    }
+                    if (currentChart) currentChart.destroy();
                     
                     const chartConfig = project.chart;
                     chartConfig.options.responsive = true;
@@ -344,33 +415,28 @@
                     currentChart = new Chart(chartCanvas, chartConfig);
 
                     modal.classList.remove('hidden');
-                    modal.classList.add('modal-enter-active', 'modal-content-enter-active');
+                    modal.classList.add('modal-enter-active');
+                    modalContent.classList.add('modal-content-enter-active');
                     setTimeout(() => {
-                        modal.classList.remove('modal-enter-active', 'modal-content-enter-active');
+                        modal.classList.remove('modal-enter-active');
+                        modalContent.classList.remove('modal-content-enter-active');
                     }, 300);
                 });
             });
             
             const closeModal = () => {
-                modal.classList.add('modal-leave-active', 'modal-content-leave-active');
+                modal.classList.add('modal-leave-active');
+                modalContent.classList.add('modal-content-leave-active');
                 setTimeout(() => {
                     modal.classList.add('hidden');
-                    modal.classList.remove('modal-leave-active', 'modal-content-leave-active');
+                    modal.classList.remove('modal-leave-active');
+                    modalContent.classList.remove('modal-content-leave-active');
                 }, 300);
             };
 
             closeModalButton.addEventListener('click', closeModal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
-            
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                    closeModal();
-                }
-            });
+            modal.addEventListener('click', (e) => (e.target === modal) && closeModal());
+            document.addEventListener('keydown', (e) => (e.key === 'Escape' && !modal.classList.contains('hidden')) && closeModal());
 
         });
     </script>
